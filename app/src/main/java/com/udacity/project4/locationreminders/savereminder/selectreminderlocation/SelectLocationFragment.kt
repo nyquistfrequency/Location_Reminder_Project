@@ -178,11 +178,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun enableMyLocation() {
         map.isMyLocationEnabled = true
         fusedLocationProviderClient.lastLocation
-            .addOnSuccessListener { location : Location? ->
+            .addOnSuccessListener { location: Location? ->
                 location?.let {
                     val myLocation = LatLng(location.latitude, location.longitude)
                     map.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, DEFAULT_ZOOM))
-                    marker=  map.addMarker(
+                    marker = map.addMarker(
                         MarkerOptions().position(myLocation)
                             .title(getString("Test".toInt()))
                     )
