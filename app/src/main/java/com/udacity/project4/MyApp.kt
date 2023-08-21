@@ -44,4 +44,5 @@ class MyApp : Application() {
 			modules(listOf(myModule))
 		}
 	}
+
 }
