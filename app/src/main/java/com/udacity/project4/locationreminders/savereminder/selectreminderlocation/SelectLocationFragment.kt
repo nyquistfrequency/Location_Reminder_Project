@@ -4,11 +4,10 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.core.app.ActivityCompat
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
@@ -18,7 +17,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
@@ -28,32 +26,24 @@ import org.koin.android.ext.android.inject
 import java.util.*
 
 // NOTE: Solution heavily influenced by the Wander-App
+// TODO: Implement a solution for no location availability
+@Suppress("DEPRECATION")
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
-    // Use Koin to get the view model of the SaveReminder
+    //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
-
-    // Vars and Vals for setting up the map
     private lateinit var map: GoogleMap
-    private val TAG = SelectLocationFragment::class.java.simpleName
-    private var marker: Marker? = null
-    private val DEFAULT_ZOOM = 15f
+    private var marker: Marker? = null // for steering when to add & remove the marker
     private val REQUEST_LOCATION_PERMISSION = 1
-    private var latitude = 0.0
-    private var longitude = 0.0
-    private var title = ""
+    private val TAG = SelectLocationFragment::class.java.simpleName
+    private val zoomLevelDefault = 15f
 
-    private val fusedLocationProviderClient by lazy {
-        LocationServices.getFusedLocationProviderClient(requireActivity())
-    }
-
-    @Suppress("DEPRECATION")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        val layoutId = R.layout.fragment_select_location
-        binding = DataBindingUtil.inflate(inflater, layoutId, container, false)
+        binding =
+            DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
         binding.viewModel = _viewModel
         binding.lifecycleOwner = this
@@ -61,18 +51,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
-        // Setting up the fragment
-        val mapFragment = childFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // TODO: add the map setup implementation
-        // TODO: zoom to the user location after taking his permission
-        // TODO: add style to the map
-        // TODO: put a marker to location that the user selected
+        binding.saveButton.setOnClickListener {
+            if (marker == null) {
+                Toast.makeText(requireContext(), R.string.select_location, Toast.LENGTH_SHORT)
+                    .show()
+            } else {
+                onLocationSelected()
+            }
+        }
 
-        // TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
         return binding.root
     }
 
@@ -83,30 +74,39 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapMarkerThroughPoiClick(map)
         setMapStyle(map)
 
-        if (isPermissionGranted()) {
-            enableMyLocation()
-        } else {
-            requestPermission()
-        }
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
 
+            enableMapAndGoToMyLocation()
+
+        } else {
+
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
+        }
     }
 
     private fun onLocationSelected() {
-        binding.saveButton.setOnClickListener {
-            _viewModel.latitude.value = latitude
-            _viewModel.longitude.value = longitude
-            _viewModel.reminderSelectedLocationStr.value = title
+
+        marker?.let {
+            _viewModel.reminderSelectedLocationStr.value = it.title
+            _viewModel.latitude.value = it.position.latitude
+            _viewModel.longitude.value = it.position.longitude
         }
 
         findNavController().popBackStack()
-
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.map_options, menu)
     }
 
-    @Suppress("DEPRECATION")
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.normal_map -> {
             map.mapType = GoogleMap.MAP_TYPE_NORMAL
@@ -135,7 +135,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 latLng.latitude,
                 latLng.longitude
             )
-            map.addMarker(
+
+            marker?.remove()
+            marker = map.addMarker(
                 MarkerOptions()
                     .position(latLng)
                     .title(getString(R.string.dropped_pin))
@@ -148,12 +150,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setMapMarkerThroughPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
-            val poiMarker = map.addMarker(
+            marker?.remove()
+            marker = map.addMarker(
                 MarkerOptions()
                     .position(poi.latLng)
                     .title(poi.name)
             )
-            poiMarker?.showInfoWindow()
+            marker?.showInfoWindow()
         }
     }
 
@@ -174,62 +177,55 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    // The implementation of the Wander App enableMapLocation didn't seem to work here as the Map never got called (even though no errors were shown)
+    // After digging in the Knowledge section I've come across this solution and tried it and it worked for me
     @SuppressLint("MissingPermission")
-    private fun enableMyLocation() {
+    private fun enableMapAndGoToMyLocation() {
         map.isMyLocationEnabled = true
-        fusedLocationProviderClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-                location?.let {
-                    val myLocation = LatLng(location.latitude, location.longitude)
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, DEFAULT_ZOOM))
-                    marker = map.addMarker(
-                        MarkerOptions().position(myLocation)
-                            .title(getString("Test".toInt()))
+        val fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(requireContext())
+        val lastLocationTask = fusedLocationProviderClient.lastLocation
+
+        lastLocationTask.addOnCompleteListener(requireActivity()) { task ->
+
+            if (task.isSuccessful) {
+                val taskResult = task.result
+                taskResult?.run {
+
+                    val latLng = LatLng(latitude, longitude)
+                    map.moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            latLng,
+                            zoomLevelDefault
+                        )
                     )
-                    marker?.showInfoWindow()
                 }
             }
-    }
-
-    private fun requestPermission() {
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) ==
-            PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) ==
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            map.isMyLocationEnabled = true
         }
     }
 
-
-    @Suppress("DEPRECATED_IDENTITY_EQUALS")
-    private fun isPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) === PackageManager.PERMISSION_GRANTED
-    }
-
-    @Suppress("DEPRECATION")
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
         grantResults: IntArray
     ) {
+
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Check if location permissions are granted and if so enable the
-        // location data layer.
+
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableMyLocation()
+            if (grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            ) {
+
+                enableMapAndGoToMyLocation()
+
             } else {
-                _viewModel.showSnackBarInt.value = R.string.permission_denied_explanation
+                // Permission denied, show an error message or handle it accordingly
+                Toast.makeText(
+                    requireContext(),
+                    R.string.permission_denied_explanation,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

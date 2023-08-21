@@ -1,7 +1,5 @@
 package com.udacity.project4.locationreminders.savereminder
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -9,13 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSaveReminderBinding
-import com.udacity.project4.locationreminders.savereminder.selectreminderlocation.SelectLocationFragment
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 
@@ -41,6 +37,7 @@ class SaveReminderFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
+
         binding.selectLocation.setOnClickListener {
             // Navigate to another fragment to get the user location
             val directions = SaveReminderFragmentDirections
@@ -57,7 +54,7 @@ class SaveReminderFragment : BaseFragment() {
             val longitude = _viewModel.longitude.value
 
 
-            requestFineAndBackgroundLocationPermissions()
+
             // TODO: use the user entered reminder details to:
             //  1) add a geofencing request
             //  2) save the reminder to the local db
@@ -73,38 +70,37 @@ class SaveReminderFragment : BaseFragment() {
     /*
     *  Requests ACCESS_FINE_LOCATION and (on Android 10+ (Q) ACCESS_BACKGROUND_LOCATION.
     */
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun requestFineAndBackgroundLocationPermissions() {
-        if (fineAndBackgroundLocationPermissionsApproved())
-            return
-        var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        val requestCode = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                34
-            }
-            else -> 33
-        }
-
-        requestPermissions(permissionsArray, requestCode)
-    }
-
-    // Determines whether the app has the appropriate permissions across
-    // Android 10+ and all other Android versions.
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun fineAndBackgroundLocationPermissionsApproved(): Boolean {
-        val foregroundLocationApproved = (
-                PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
-                    requireContext(), Manifest.permission.ACCESS_FINE_LOCATION))
-
-        val backgroundPermissionApproved =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
-                    requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-            } else {
-                true
-            }
-
-        return foregroundLocationApproved && backgroundPermissionApproved
-    }
+//    @RequiresApi(Build.VERSION_CODES.Q)
+//    private fun requestFineAndBackgroundLocationPermissions() {
+//        if (fineAndBackgroundLocationPermissionsApproved())
+//            return
+//        var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+//        val requestCode = when {
+//            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+//                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
+//                34
+//            }
+//            else -> 33
+//        }
+//
+//        requestPermissions(permissionsArray, requestCode)
+//    }
+//
+//
+//    @RequiresApi(Build.VERSION_CODES.Q)
+//    private fun fineAndBackgroundLocationPermissionsApproved(): Boolean {
+//        val foregroundLocationApproved = (
+//                PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
+//                    requireContext(), Manifest.permission.ACCESS_FINE_LOCATION))
+//
+//        val backgroundPermissionApproved =
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
+//                    requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+//            } else {
+//                true
+//            }
+//
+//        return foregroundLocationApproved && backgroundPermissionApproved
+//    }
 }

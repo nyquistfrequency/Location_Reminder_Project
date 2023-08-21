@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
+import com.udacity.project4.R
 import com.udacity.project4.databinding.ActivityRemindersBinding
 
 /**
@@ -19,10 +20,12 @@ class RemindersActivity : AppCompatActivity() {
         setContentView(binding.root)
     }
 
+    // I was encountering a ClassCastException when inflating the nav_host_fragment with Databinding that's why onOptionsItemSelected was rewritten.
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                (binding.navHostFragment as NavHostFragment).navController.popBackStack()
+                val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                navHostFragment.navController.popBackStack()
                 return true
             }
         }
