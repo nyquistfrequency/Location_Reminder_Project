@@ -1,19 +1,10 @@
 package com.udacity.project4.locationreminders.geofence
 
-import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.core.content.ContextCompat
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingEvent
-import com.udacity.project4.R
-import com.udacity.project4.locationreminders.geofence.GeofencingConstants.ACTION_GEOFENCE_EVENT
-
-private const val TAG = "GeofenceReceiver"
-
-//TODO: Review Geofencing
+import com.udacity.project4.utils.GeofencingConstants.ACTION_GEOFENCE_EVENT
 
 /**
  * Triggered by the Geofence.  Since we can have many Geofences at once, we pull the request
@@ -24,43 +15,17 @@ private const val TAG = "GeofenceReceiver"
  * To do that you can use https://developer.android.com/reference/android/support/v4/app/JobIntentService to do that.
  *
  */
+
+private val TAG = GeofenceBroadcastReceiver::class.java.simpleName
+
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-//        if (intent.action == ACTION_GEOFENCE_EVENT) {
-//            val geofencingEvent = GeofencingEvent.fromIntent(intent)
-//
-//            if (geofencingEvent.hasError()) {
-//                val errorMessage = errorMessage(context, geofencingEvent.errorCode)
-//                Log.e(TAG, errorMessage)
-//                return
-//            }
-//
-//            if (geofencingEvent?.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-//                Log.v(TAG, context.getString(R.string.geofence_entered))
-//                val fenceId = when {
-//                    geofencingEvent.triggeringGeofences.isNotEmpty() ->
-//                        geofencingEvent.triggeringGeofences?.get(0)?.requestId
-//                    else -> {
-//                        Log.e(TAG, "No Geofence Trigger Found!")
-//                        return
-//                    }
-//                }
-//                val foundIndex = GeofencingConstants.LANDMARK_DATA.indexOfFirst {
-//                    it.id == fenceId
-//                }
-//                if ( -1 == foundIndex ) {
-//                    Log.e(TAG, "Unknown Geofence: Abort Mission")
-//                    return
-//                }
-//                val notificationManager = ContextCompat.getSystemService(
-//                    context,
-//                    NotificationManager::class.java
-//                ) as NotificationManager
-//
-//                notificationManager.sendGeofenceEnteredNotification(
-//                    context, foundIndex
-//                )
-//            }
-//        }
+
+        // Utilizing JobIntentService to make geofencing work in the background
+        if (intent.action == ACTION_GEOFENCE_EVENT) {
+            Log.i(TAG, "Geofence Event received")
+            GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
+
+        }
     }
 }

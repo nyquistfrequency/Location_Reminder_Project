@@ -1,4 +1,4 @@
-package com.udacity.project4.locationreminders.geofence
+package com.udacity.project4.utils
 
 import android.content.Context
 import com.google.android.gms.location.GeofenceStatusCodes

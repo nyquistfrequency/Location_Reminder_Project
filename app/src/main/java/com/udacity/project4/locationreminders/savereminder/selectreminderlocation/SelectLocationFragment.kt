@@ -25,8 +25,6 @@ import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.*
 
-// NOTE: Solution heavily influenced by the Wander-App
-// TODO: Implement a solution for no location availability
 @Suppress("DEPRECATION")
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -177,8 +175,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-    // The implementation of the Wander App enableMapLocation didn't seem to work here as the Map never got called (even though no errors were shown)
-    // After digging in the Knowledge section I've come across this solution and tried it and it worked for me
+    // The implementation of the Wander App enableMapLocation didn't seem to work here as the Map never got called (even though no errors were shown).
+    // After digging in the Udacity Knowledge section I've come across this solution with fusedLocationProviderClient and tried it and it worked for me.
     @SuppressLint("MissingPermission")
     private fun enableMapAndGoToMyLocation() {
         map.isMyLocationEnabled = true
@@ -220,7 +218,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 enableMapAndGoToMyLocation()
 
             } else {
-                // Permission denied, show an error message or handle it accordingly
                 Toast.makeText(
                     requireContext(),
                     R.string.permission_denied_explanation,
