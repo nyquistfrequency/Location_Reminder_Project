@@ -24,8 +24,8 @@ private const val TAG = "GeofenceReceiver"
  * To do that you can use https://developer.android.com/reference/android/support/v4/app/JobIntentService to do that.
  *
  */
-//class GeofenceBroadcastReceiver : BroadcastReceiver() {
-//    override fun onReceive(context: Context, intent: Intent) {
+class GeofenceBroadcastReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
 //        if (intent.action == ACTION_GEOFENCE_EVENT) {
 //            val geofencingEvent = GeofencingEvent.fromIntent(intent)
 //
@@ -62,5 +62,5 @@ private const val TAG = "GeofenceReceiver"
 //                )
 //            }
 //        }
-//    }
-//}
+    }
+}
