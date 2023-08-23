@@ -42,9 +42,4 @@
     <string name="error_adding_geofence">Error Happened, Can\'t Add Geofence</string>
     <string name="login_unsuccessful_msg">Login unsuccessful</string>
 
-    <string name="detail_title">Title: <b>%1$s</b> </string>
-    <string name="detail_description">Description: <b>%1$s</b> </string>
-    <string name="detail_location">Location: <b>%1$s</b> </string>
-    <string name="detail_latitude">latitude: <b>%1$.5f</b></string>
-    <string name="detail_longitude">Longitude: <b>%1$.5f</b></string>
 </resources>

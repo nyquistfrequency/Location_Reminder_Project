@@ -42,14 +42,14 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         if (intent.action == ACTION_GEOFENCE_EVENT) {
             val geofencingEvent = GeofencingEvent.fromIntent(intent)
 
-            if (geofencingEvent!!.hasError()) {
+            if (geofencingEvent?.hasError() == true) {
                 val errorMessage = errorMessage(this, geofencingEvent.errorCode)
                 Log.e(TAG, errorMessage)
                 return
             }
 
 
-            if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+            if (geofencingEvent!!.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 Log.i(TAG, this.getString(R.string.geofence_entered))
                 sendNotification(geofencingEvent.triggeringGeofences!!)
             }
