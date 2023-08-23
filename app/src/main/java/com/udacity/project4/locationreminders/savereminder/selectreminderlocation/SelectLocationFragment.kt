@@ -153,6 +153,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 MarkerOptions()
                     .position(poi.latLng)
                     .title(poi.name)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
             )
             marker?.showInfoWindow()
         }
