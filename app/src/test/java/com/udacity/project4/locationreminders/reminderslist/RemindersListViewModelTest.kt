@@ -5,19 +5,25 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
+import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.pauseDispatcher
+import kotlinx.coroutines.test.resumeDispatcher
+import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.runner.RunWith
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.koin.dsl.koinApplication
+import org.koin.test.AutoCloseKoinTest
+import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
-class RemindersListViewModelTest {
+@Config(sdk = [29])
+class RemindersListViewModelTest : AutoCloseKoinTest() {
 
     //Subject under test
     private lateinit var remindersListViewModel: RemindersListViewModel
@@ -35,23 +41,70 @@ class RemindersListViewModelTest {
     var mainCoroutineRule = MainCoroutineRule()
 
     @Before
-    fun setupRemindersListViewModel(){
+    fun setupRemindersListViewModel() {
         fakeReminderDataSource = FakeDataSource()
-        remindersListViewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeReminderDataSource)
+
+        remindersListViewModel = RemindersListViewModel(
+            ApplicationProvider.getApplicationContext(),
+            fakeReminderDataSource
+        )
     }
 
     @Test
-    fun testInvalidDataSource_returnError(){
-        // Make the FakeDataSource return errors
-        fakeReminderDataSource.shouldReturnError(true)
+    fun reminderList_checkIfContentAvailable() = runBlockingTest{
+        // When content is available
+        val savedReminder1 =
+            ReminderDTO("Title1", "Description 1", "Location 1", 10.000, -10.000)
 
+        // Save the element
+        fakeReminderDataSource.saveReminder(savedReminder1)
+
+        // Load it to the list
+        remindersListViewModel.loadReminders()
+
+        // Then crosscheck that list isn't empty
+        assertThat(remindersListViewModel.remindersList.getOrAwaitValue().isEmpty(), `is`(false))
+    }
+
+    @Test
+    fun invalidDataSource_ShouldReturnError() {
         // When the DataSource has no valid value
         fakeReminderDataSource = FakeDataSource(null)
 
-        // Then return an error message
-        assertThat(remindersListViewModel.showSnackBar.getOrAwaitValue(), `is`("Error getting reminders"))
+        // (updating viewModel because tasks = null for this test)
+        remindersListViewModel = RemindersListViewModel(
+            ApplicationProvider.getApplicationContext(),
+            fakeReminderDataSource
+        )
+
+        // Make the FakeDataSource return errors if loadReminders is triggered without a valid DataSource
+        fakeReminderDataSource.shouldReturnError(true)
+        remindersListViewModel.loadReminders()
+
+        // Then crosscheck to confirm if the error has been thrown correctly
+        assertThat(
+            remindersListViewModel.showSnackBar.getOrAwaitValue(),
+            `is`("Error: Reminders not found")
+        )
 
     }
-    //TODO: provide testing to the RemindersListViewModel and its live data objects
+
+    @Test
+    fun loadTasks_checkLoading() {
+        // Pause dispatcher so we can verify initial values
+        mainCoroutineRule.pauseDispatcher()
+
+        // Load the task in the viewmodel
+        remindersListViewModel.loadReminders()
+
+        // Then progress indicator is shown
+        assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), `is`(true))
+
+        // Execute pending coroutines actions
+        mainCoroutineRule.resumeDispatcher()
+
+        // Then progress indicator is hidden
+        assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), `is`(false))
+    }
 
 }
