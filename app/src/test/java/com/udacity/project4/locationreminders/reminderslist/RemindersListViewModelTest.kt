@@ -52,11 +52,11 @@ class RemindersListViewModelTest : AutoCloseKoinTest() {
 
     @Test
     fun reminderList_checkIfContentAvailable() = runBlockingTest{
-        // When content is available
+        // Given a reminder
         val savedReminder1 =
             ReminderDTO("Title1", "Description 1", "Location 1", 10.000, -10.000)
 
-        // Save the element
+        // Save it
         fakeReminderDataSource.saveReminder(savedReminder1)
 
         // Load it to the list
@@ -68,7 +68,7 @@ class RemindersListViewModelTest : AutoCloseKoinTest() {
 
     @Test
     fun invalidDataSource_ShouldReturnError() {
-        // When the DataSource has no valid value
+        // Given a DataSource with no valid value
         fakeReminderDataSource = FakeDataSource(null)
 
         // (updating viewModel because tasks = null for this test)

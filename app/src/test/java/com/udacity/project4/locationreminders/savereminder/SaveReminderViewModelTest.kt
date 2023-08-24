@@ -53,7 +53,7 @@ class SaveReminderViewModelTest : AutoCloseKoinTest() {
 
     @Test
     fun saveReminder_returnErrorIfTitleMissing() {
-        // When a reminder has no title
+        // Given a reminder that has no title
         val reminderToBeSaved =
             ReminderDataItem("", "Description 1", "Location 1", 10.000, -10.000)
 
@@ -66,7 +66,7 @@ class SaveReminderViewModelTest : AutoCloseKoinTest() {
 
     @Test
     fun saveReminder_returnErrorIfLocationMissing() {
-        // When a reminder has no location
+        // Given a reminder that has no location
         val reminderToBeSaved =
             ReminderDataItem("Title 1", "Description 1", "", 10.000, -10.000)
 
@@ -80,7 +80,7 @@ class SaveReminderViewModelTest : AutoCloseKoinTest() {
 
     @Test
     fun saveReminder_checkLoading() {
-        // When a reminder is given to be saved
+        // Given a reminder
         val reminderToBeSaved =
             ReminderDataItem("Title 1", "Description 1", "Location 1", 10.000, -10.000)
 

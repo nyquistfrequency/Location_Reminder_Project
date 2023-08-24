@@ -26,13 +26,13 @@ class FakeDataSource(var tasks: MutableList<ReminderDTO>? = mutableListOf()) : R
 
         return when {
             returnError -> {
-                Result.Error("No Reminder found Error")
+                Result.Error("Reminder not found!")
             }
             reminder != null -> {
                 Result.Success(reminder)
             }
             else -> {
-                Result.Error("No Reminder found Error")
+                Result.Error("Reminder not found!")
             }
         }
     }
