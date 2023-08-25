@@ -10,7 +10,7 @@ import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.RootMatchers
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -24,7 +24,8 @@ import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -155,10 +156,7 @@ class RemindersActivityTest :
 
         // Verify that the Toast "Reminder Saved !" is displayed
         onView(withText(R.string.reminder_saved)).inRoot(
-            RootMatchers.withDecorView(
-                CoreMatchers.not(
-                    CoreMatchers.`is`(
-                        getActivity(activityScenario).window.decorView
+            withDecorView(not(`is`(getActivity(activityScenario).window.decorView
                     )
                 )
             )

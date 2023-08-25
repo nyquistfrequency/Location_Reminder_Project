@@ -72,20 +72,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapMarkerThroughPoiClick(map)
         setMapStyle(map)
 
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-
+        if (isPermissionGranted()) {
             enableMapAndGoToMyLocation()
-
         } else {
-
-            requestPermissions(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                REQUEST_LOCATION_PERMISSION
-            )
+            requestQPermission()
         }
     }
 
@@ -215,7 +205,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             if (grantResults.isNotEmpty() &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED
             ) {
-
                 enableMapAndGoToMyLocation()
 
             } else {
@@ -225,6 +214,35 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+        }
+    }
+
+    private fun isPermissionGranted(): Boolean {
+        return (ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+                )
+    }
+
+    private fun requestQPermission() {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) ==
+            PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            map.isMyLocationEnabled = true
+        } else {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
         }
     }
 }
