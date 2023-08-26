@@ -2,52 +2,47 @@ package com.udacity.project4.locationreminders.data
 
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
-import com.udacity.project4.locationreminders.data.local.RemindersDao
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 //Use FakeDataSource that acts as a test double to the LocalDataSource
-class FakeDataSource(var tasks: MutableList<ReminderDTO>? = mutableListOf()) : ReminderDataSource {
+//Note: After feedback I did a change here from MutableList<ReminderDTO>? to MutableList<ReminderDTO>
+//"Please note that if no reminders are found, then Room simply returns an empty list. It will never return null.
+//Hence, the data that the fake data source holds should be declared as non-nullable."
+class FakeDataSource(var tasks: MutableList<ReminderDTO> = mutableListOf()) : ReminderDataSource {
 
     private var returnError = false
-    private lateinit var remindersDao: RemindersDao
-
-    /**
-     * Get the reminders list from the local db
-     * @return Result the holds a Success with all the reminders or an Error object with the error message
-     */
-    override suspend fun getReminders(): Result<List<ReminderDTO>> = withContext(Dispatchers.IO) {
-        return@withContext try {
-            Result.Success(remindersDao.getReminders())
-        } catch (ex: Exception) {
-            Result.Error(ex.localizedMessage)
-        }
-    }
-
-    override suspend fun saveReminder(reminder: ReminderDTO) {
-        tasks?.add(reminder)
-    }
-
-    override suspend fun getReminder(id: String): Result<ReminderDTO> = withContext(Dispatchers.IO) {
-        try {
-            val reminder = remindersDao.getReminderById(id)
-            if (reminder != null) {
-                return@withContext Result.Success(reminder)
-            } else {
-                return@withContext Result.Error("Reminder not found!")
-            }
-        } catch (e: Exception) {
-            return@withContext Result.Error(e.localizedMessage)
-        }
-    }
-
-    override suspend fun deleteAllReminders() {
-        tasks?.clear()
-    }
 
     fun shouldReturnError(boolean: Boolean) {
         returnError = boolean
     }
 
+    /**
+     * Get the reminders list from the local db
+     * @return Result the holds a Success with all the reminders or an Error object with the error message
+     */
+    override suspend fun getReminders(): Result<List<ReminderDTO>> {
+            if (returnError) {
+                return Result.Error("Test throws exception")
+            }
+        return Result.Success(ArrayList(tasks))
+    }
+
+
+    override suspend fun saveReminder(reminder: ReminderDTO) {
+        tasks.add(reminder)
+    }
+
+    override suspend fun getReminder(id: String): Result<ReminderDTO> {
+        if (returnError)
+            return Result.Error("Test throws exception")
+
+        tasks.firstOrNull { it.id == id }?.let {
+            return Result.Success(it)
+        }
+        return Result.Error("Reminder not found!")
+    }
+
+    override suspend fun deleteAllReminders() {
+        tasks.clear()
+    }
 
 }

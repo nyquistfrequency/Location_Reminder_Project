@@ -66,25 +66,19 @@ class RemindersListViewModelTest : AutoCloseKoinTest() {
         assertThat(remindersListViewModel.remindersList.getOrAwaitValue().isEmpty(), `is`(false))
     }
 
+    // After feedback test needed to be rewritten because it assumed that the list could be null (instead of empty)
     @Test
-    fun invalidDataSource_ShouldReturnError() {
-        // Given a DataSource with no valid value
-        fakeReminderDataSource = FakeDataSource(null)
-
-        // (updating viewModel because tasks = null for this test)
-        remindersListViewModel = RemindersListViewModel(
-            ApplicationProvider.getApplicationContext(),
-            fakeReminderDataSource
-        )
-
-        // Make the FakeDataSource return errors if loadReminders is triggered without a valid DataSource
+    fun shouldReturnError() {
+        // Given a situation where you would trigger an error
         fakeReminderDataSource.shouldReturnError(true)
+
+        // When you load the reminders
         remindersListViewModel.loadReminders()
 
         // Then crosscheck to confirm if the error has been thrown correctly
         assertThat(
             remindersListViewModel.showSnackBar.getOrAwaitValue(),
-            `is`("Error: Reminders not found")
+            `is`("Test throws exception")
         )
 
     }
